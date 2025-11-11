@@ -124,7 +124,7 @@ I went back to the problem statement. There it was, in the optional features:
 
 My eyes filled with tears.
 
-I had implemented boost logic. But not strategically enough. Not aggressively enough. The winners had **mastered boost timing**.
+I have not implemented boost logic. Not aggressively enough. The winners had **mastered boost timing**.
 
 ### The Validation
 I enhanced my boost strategy to match the winning approach.
