@@ -252,8 +252,8 @@ python local-tester.py
 - Torus wraparound support
 
 **RL Agent**: 🔄 In Development
-- A2C: Trained (35% win rate)
-- PPO: Trained (35% win rate)
+- A2C: Trained 
+- PPO: Trained (35% win rate against Beast)
 - Next: Enhanced training with boost mastery
 
 ---
