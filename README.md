@@ -105,7 +105,7 @@ With the deadline approaching, I enhanced The Beast instead of continuing with R
 We lost.
 
 ### The Investigation
-I immediately checked the winning code. My heart sank.
+I immediately checked the winning code. I was suprised!.
 
 **Their approach**: Nearly identical to mine.
 - Same algorithms
