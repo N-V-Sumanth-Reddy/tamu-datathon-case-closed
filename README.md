@@ -1,87 +1,313 @@
-# Case Closed Agent Template
+# TAMU Datathon - Case Closed Challenge
 
-### Explanation of Files
+## 🏆 Tron AI Agent Competition
 
-This template provides a few key files to get you started. Here's what each one does:
+An advanced Tron AI agent built for the TAMU Datathon Case Closed Challenge, featuring multiple sophisticated algorithms and a journey through classical AI and reinforcement learning.
 
-#### `agent.py`
-**This is the most important file. This is your starter code, where you will write your agent's logic.**
+---
 
-*   DO NOT RENAME THIS FILE! Our pipeline will only recognize your agent as `agent.py`.
-*   It contains a fully functional, Flask-based web server that is already compatible with the Judge Engine's API.
-*   It has all the required endpoints (`/`, `/send-state`, `/send-move`, `/end`). You do not need to change the structure of these.
-*   Look for the `send_move` function. Inside, you will find a section marked with comments: `# --- YOUR CODE GOES HERE ---`. This is where you should add your code to decide which move to make based on the current game state.
-*   Your agent can return moves in the format `"DIRECTION"` (e.g., `"UP"`, `"DOWN"`, `"LEFT"`, `"RIGHT"`) or `"DIRECTION:BOOST"` (e.g., `"UP:BOOST"`) to use a speed boost.
+## 🎮 About the Challenge
 
-#### `requirements.txt`
-**This file lists your agent's Python dependencies.**
+The Case Closed Challenge is a Tron-style game where two AI agents compete on a grid:
+- Agents leave permanent trails behind them
+- Crashing into trails, boundaries, or each other means elimination
+- **Torus board**: Wraparound mechanics (edges connect)
+- **Boost mechanic**: 3 boosts per game to jump 2 spaces
+- Last agent standing wins
 
-*   Don't rename this file either.
-*   It comes pre-populated with `Flask` and `requests`.
-*   If your agent's logic requires other libraries (like `numpy`, `scipy`, or any other package from PyPI), you **must** add them to this file.
-*   When you submit, our build pipeline will run `pip install -r requirements.txt` to install these libraries for your agent.
+**Grid Size**: 20x18  
+**Max Turns**: 500  
+**Time per Move**: 4 seconds (with 2 retry attempts)
 
-#### `judge_engine.py`
-**A copy of the runner of matches.**
+---
 
-*   The judge engine is the heart of a match in Case Closed. It can be used to simulate a match.
-*   The judge engine can be run only when two agents are running on ports `5008` and `5009`.
-*   We provide a sample agent that can be used to train your agent and evaluate its performance.
+## 🤖 Agent Architecture
 
-#### `case_closed_game.py`
-**A copy of the official game state logic.**
+### The Beast - Classical AI Approach
 
-*   Don't rename this file either.
-*   This file contains the complete state of the match played, including the `Game`, `GameBoard`, and `Agent` classes.
-*   While your agent will receive the game state as a JSON object, you can read this file to understand the exact mechanics of the game: how collisions are detected, how trails work, how boosts function, and what ends a match. This is the "source of truth" for the game rules.
-*   Key mechanics:
-    - Agents leave permanent trails behind them
-    - Hitting any trail (including your own) causes death
-    - Head-on collisions: the agent with the longer trail survives
-    - Each agent has 3 speed boosts (moves twice instead of once)
-    - The board has torus (wraparound) topology
-    - Game ends after 200 turns or when one/both agents die
+My agent uses a multi-algorithm approach inspired by **Google AI Challenge winners**:
 
-#### `sample_agent.py`
-**A simple agent that you can play against.**
+#### 1. **Alpha-Beta Minimax with Iterative Deepening** ⭐
+- Searches up to depth 20 moves ahead
+- Uses all available thinking time (0.7s per move)
+- Killer move heuristic for optimal pruning
+- Advanced evaluation function:
+  - Territory control: 50 points per square
+  - Edge mobility: 10 points per edge
+  - Articulation risk: -20 points per bottleneck
 
-*   The sample agent is provided to help you evaluate your own agent's performance. 
-*   In conjunction with `judge_engine.py`, you should be able to simulate a match against this agent.
+#### 2. **Chamber Detection Module**
+- Tarjan's articulation points algorithm
+- Voronoi territory computation
+- Detects when agents are separated
+- Switches strategies based on game phase
 
-#### `local-tester.py`
-**A local tester to verify your agent's API compliance.**
+#### 3. **Monte Carlo Tree Search (MCTS)**
+- 500 simulations for critical decisions
+- 20-step random playouts
+- Triggered when:
+  - Distance to opponent ≤ 4
+  - Only 2 or fewer valid moves
+  - Board >70% filled
 
-*   This script tests whether your agent correctly implements all required endpoints.
-*   Run this to ensure your agent can communicate with the judge engine before submitting.
+#### 4. **Strategic Boost System**
+- Conservative boost usage with safety checks
+- Territory-aware boost decisions
+- Collision avoidance
+- Timing optimization (early/mid/late game)
 
-#### `Dockerfile`
-**A copy of the Dockerfile your agent will be containerized with.**
+#### 5. **Torus Wraparound Support**
+- Full wraparound mechanics
+- All algorithms support board edges
+- No corner traps
 
-*   This is a copy of a Dockerfile. This same Dockerfile will be used to containerize your agent so we can run it on our evaluation platform.
-*   It is **HIGHLY** recommended that you try Dockerizing your agent once you're done. We can't run your agent if it can't be containerized.
-*   There are a lot of resources at your disposal to help you with this. We recommend you recruit a teammate that doesn't run Windows for this. 
+---
 
-#### `.dockerignore`
-**A .dockerignore file doesn't include its contents into the Docker image**
+## 📊 The Journey: From RL Dreams to Classical Reality
 
-*   This `.dockerignore` file will be useful for ensuring unwanted files do not get bundled in your Docker image.
-*   You have a 5GB image size restriction, so you are given this file to help reduce image size and avoid unnecessary files in the image.
+### Phase 1: Building The Beast (Classical AI)
+I started by implementing sophisticated classical algorithms:
+- ✅ Iterative deepening minimax
+- ✅ Advanced evaluation functions
+- ✅ MCTS for tactical decisions
+- ✅ Chamber detection
 
-#### `.gitignore`
-*   A standard configuration file that tells Git which files and folders (like the `venv` virtual environment directory) to ignore. You shouldn't need to change this.
+**Result**: Strong agent that could think 15+ moves ahead.
 
+### Phase 2: The RL Experiment (A2C)
+Inspired by **AlphaGo's training strategy**, I built an RL agent:
 
-### Testing your agent:
-**Both `agent.py` and `sample_agent.py` come ready to run out of the box!**
+**Training Pipeline**:
+1. Random move exploration
+2. Training against classical baselines
+3. Training against The Beast
+4. Self-play for mastery
 
-*   To test your agent, you will likely need to create a `venv`. Look up how to do this. 
-*   Next, you'll need to `pip install` any required libraries. `Flask` is one of these.
-*   Finally, in separate terminals, run both `agent.py` and `sample_agent.py`, and only then can you run `judge_engine.py`.
-*   You can also run `local-tester.py` to verify your agent's API compliance before testing against another agent.
+**The Problem**: Training curve clamped to 0 when facing The Beast. The agent couldn't learn—it just kept losing.
 
+### Phase 3: The Pivot (PPO)
+Switched to **PPO (Proximal Policy Optimization)**:
+- A2C + clipping to handle difficult training scenarios
+- Better gradient stability
 
-### Disclaimers:
-* There is a 5GB limit on Docker image size, to keep competition fair and timely.
-* Due to platform and build-time constraints, participants are limited to **CPU-only PyTorch**; GPU-enabled versions, including CUDA builds, are disallowed. Any other heavy-duty GPU or large ML frameworks (like Tensorflow, JAX) will not be allowed.
-* Ensure your agent's `requirements.txt` is complete before pushing changes.
-* If you run into any issues, take a look at your own agent first before asking for help.
+**Result**: 35% win rate against The Beast! But time was running out...
+
+### Phase 4: The Pragmatic Choice
+With the deadline approaching, I enhanced The Beast instead of continuing with RL.
+
+**Confidence Level**: High. I assumed others would struggle with RL in the short timeframe.
+
+---
+
+## 💔 The Competition: The Lesson
+
+### The Defeat
+We lost.
+
+### The Investigation
+I immediately checked the winning code. My heart sank.
+
+**Their approach**: Nearly identical to mine.
+- Same algorithms
+- Same Google AI Challenge inspiration
+- No RL
+- Just classical AI
+
+### The Revelation
+I asked AI to analyze the difference. One word:
+
+**BOOSTING**
+
+I went back to the problem statement. There it was, in the optional features:
+
+> Agents can use boost moves (UP:BOOST, DOWN:BOOST, etc.) for a limited number of times (3). The agent jumps 2 spaces in one move.
+
+My eyes filled with tears.
+
+I had implemented boost logic. But not strategically enough. Not aggressively enough. The winners had **mastered boost timing**.
+
+### The Validation
+I enhanced my boost strategy to match the winning approach.
+
+I ran tests against the winning code.
+
+**My enhanced agent won.**
+
+😢
+
+---
+
+## 📚 Lessons Learned
+
+### 1. **Read Every Word of the Specification**
+The difference between victory and defeat wasn't algorithm sophistication—it was understanding ALL the game mechanics.
+
+### 2. **Simple Features Can Be Game-Changers**
+Boost moves seemed like a minor feature. They were actually the most powerful tool in the game.
+
+### 3. **Classical AI Still Competes**
+In short timeframes, well-implemented classical algorithms can match or beat RL approaches.
+
+### 4. **Failure Is the Best Teacher**
+This loss taught me more than any victory could have.
+
+---
+
+## 🚀 The Journey Continues
+
+### Will I Stop Here?
+
+**No.**
+
+While writing this, there's a training simulation running in the background.
+
+### The Next Chapter: Ultimate RL Agent
+
+I'm building the **ultimate RL agent** with:
+- ✅ Proper boost integration from day one
+- ✅ Multiple RL algorithms (A2C, PPO, SAC, DQN)
+- ✅ Curriculum learning strategies
+- ✅ Self-play with population-based training
+- ✅ Lessons learned from this competition
+
+**Goal**: Build an RL agent that beats The Beast (now with proper boost strategy).
+
+---
+
+## 🛠️ Technical Stack
+
+**Languages**: Python 3.13  
+**Frameworks**: Flask (API), NumPy (computation)  
+**Algorithms**: Alpha-Beta, MCTS, Iterative Deepening, Voronoi, Tarjan's  
+**RL (Experimental)**: A2C, PPO, PyTorch  
+
+---
+
+## 📁 Repository Structure
+
+```
+├── agent.py                    # The Enhanced Beast (Main Agent)
+├── sample_agent.py             # Reference Agent (TronBot)
+├── judge_engine.py             # Game Judge/Referee
+├── case_closed_game.py         # Game Mechanics
+├── local-tester.py             # API Compliance Tester
+├── run_tests.py                # Tournament Runner
+├── requirements.txt            # Dependencies
+│
+├── JOURNEY.md                  # This file - The full story
+├── ENHANCEMENTS.md             # Technical improvements
+├── AGENT_ALGORITHMS.md         # Algorithm documentation
+├── AGENT_COMPARISON.md         # Agent analysis
+├── TESTING_GUIDE.md            # How to run tests
+│
+└── rl_agent/                   # [Coming Soon] RL experiments
+    ├── a2c_agent.py
+    ├── ppo_agent.py
+    └── training_logs/
+```
+
+---
+
+## 🚦 Quick Start
+
+### Setup
+```bash
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Run Single Game
+```bash
+# Terminal 1: Start Agent 1
+python agent.py
+
+# Terminal 2: Start Agent 2
+python sample_agent.py
+
+# Terminal 3: Run Judge
+python judge_engine.py
+```
+
+### Test API Compliance
+```bash
+# Terminal 1: Start your agent
+python agent.py
+
+# Terminal 2: Run tests
+python local-tester.py
+```
+
+---
+
+## 📈 Current Status
+
+**Classical Agent (The Beast)**: ✅ Complete
+- Iterative deepening (depth 20)
+- Advanced evaluation
+- Strategic boost usage
+- Torus wraparound support
+
+**RL Agent**: 🔄 In Development
+- A2C: Trained (35% win rate)
+- PPO: Trained (35% win rate)
+- Next: Enhanced training with boost mastery
+
+---
+
+## 🎯 Future Updates
+
+- [ ] Complete RL agent training with boost integration
+- [ ] Tournament results (RL vs Classical)
+- [ ] Training curves and analysis
+- [ ] Open-source RL training framework
+- [ ] Video demonstrations
+- [ ] Performance benchmarks
+
+---
+
+## 🤝 Contributing
+
+This is a personal learning journey, but insights and suggestions are welcome!
+
+---
+
+## 📝 License
+
+MIT License - Feel free to learn from and build upon this code.
+
+---
+
+## 🙏 Acknowledgments
+
+- **TAMU Datathon** for organizing the challenge
+- **Google AI Challenge** for algorithm inspiration
+- **AlphaGo** for RL training strategy inspiration
+- **The winning teams** for showing me what I missed
+
+---
+
+## 💭 Final Thoughts
+
+> "I have not failed. I've just found 10,000 ways that won't work."  
+> — Thomas Edison
+
+This competition taught me that:
+- **Sophistication ≠ Success**
+- **Understanding > Implementation**
+- **Persistence > Perfection**
+
+The journey continues. Stay tuned for the RL comeback story.
+
+---
+
+**Status**: 🔥 Training in Progress  
+**Next Update**: When the RL agent beats The Beast  
+**Follow**: [GitHub](https://github.com/N-V-Sumanth-Reddy) for updates
+
+---
+
+*Built with determination, debugged with tears, enhanced with lessons learned.*

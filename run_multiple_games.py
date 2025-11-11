@@ -11,10 +11,10 @@ def run_game():
     """Run a single game and return the result"""
     try:
         result = subprocess.run(
-            ["bash", "-c", "source venv/bin/activate && python judge_engine.py"],
+            ["bash", "-c", "source .venv/bin/activate && python judge_engine.py"],
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=120  # Increased timeout for iterative deepening
         )
         
         output = result.stdout
